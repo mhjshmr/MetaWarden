@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Image Analysis Results{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Image Analysis Results</h2>
+                    
+                    <div class="mb-4">
+                        <h4 class="mb-3">Detected Metadata</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Property</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for key, value in metadata.items() %}
+                                    <tr>
+                                        <td class="fw-medium">{{ key }}</td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('download_image', image_id=image_id) }}" 
+                               class="btn btn-primary w-100 py-2 {% if not is_cleaned %}disabled{% endif %}"
+                               {% if not is_cleaned %}aria-disabled="true"{% endif %}>
+                                <i class="fas fa-download me-2"></i>
+                                {% if is_cleaned %}
+                                    Download Cleaned Image
+                                {% else %}
+                                    No Cleaned Version Available
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('download_original', image_id=image_id) }}" class="btn btn-outline-primary w-100 py-2">
+                                <i class="fas fa-file-download me-2"></i>Download Original Image
+                            </a>
+                        </div>
+                        <div class="col-12">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 py-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .table {
+        margin-bottom: 0;
+    }
+    .table th {
+        background-color: var(--light-bg);
+        color: var(--secondary-color);
+        font-weight: 600;
+        border-bottom: 2px solid var(--light-bg);
+    }
+    .table td {
+        border-bottom: 1px solid var(--light-bg);
+        vertical-align: middle;
+    }
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+    .btn.disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+    h4 {
+        color: var(--secondary-color);
+        font-weight: 600;
+    }
+</style>
+{% endblock %} 
