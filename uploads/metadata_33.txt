@@ -1,0 +1,6 @@
+Image Metadata Report
+===================
+
+Format: JPEG
+Mode: RGB
+Size: [100, 68]

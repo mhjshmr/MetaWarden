@@ -1,0 +1,39 @@
+MINH.../             <-- (Root of your project)
+├── __pycache__/     <-- Python cache files (should be ignored in Git)
+│   └── models.cpython-...
+│
+├── instance/        <-- Likely used to store database or config
+│   └── app.db       <-- Your SQLite database file
+│
+├── static/
+│   └── uploads/     <-- For uploaded images or files
+│
+├── templates/       <-- Jinja2 HTML templates
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── login.html
+│   ├── register.html
+│   ├── result.html
+│   ├── upload.html
+│   └── view_image.html
+│
+├── uploads/         <-- Might be for user uploads (dynamic content)
+│
+├── venv/            <-- Your virtual environment (should be in .gitignore)
+│
+├── .gitignore       <-- Git ignore file
+├── pyvenv.cfg       <-- Python venv config
+├── app.py           <-- Main Flask app file
+├── models.py        <-- Database models or business logic
+├── MY PROJECT PRESENT... <-- A PDF (probably a presentation/report)
+├── README.md        <-- Project overview or instructions
+└── requirements.txt <-- Dependencies for pip install
+
+
+This a Flask web application that:
+# Uses templates to render web pages (with login, register, dashboard, image upload/view, etc.)
+# Stores uploaded files (probably images) inside static/uploads/
+# Has a local SQLite DB in the instance/ folder
+# Is running from app.py and uses a models.py file to handle database or logic
+# Has all its dependencies listed in requirements.txt
+# Is nicely documented with a README.md and even includes a presentation (PDF)

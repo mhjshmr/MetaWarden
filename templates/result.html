@@ -50,8 +50,20 @@
                                 <i class="fas fa-file-download me-2"></i>Download Original Image
                             </a>
                         </div>
-                        <div class="col-12">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 py-2">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('download_metadata', image_id=image_id) }}" class="btn btn-info w-100 py-2">
+                                <i class="fas fa-file-alt me-2"></i>Download Privacy Report
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('download_raw_metadata', image_id=image_id) }}" class="btn btn-outline-info w-100 py-2">
+                                <i class="fas fa-file-alt me-2"></i>Download Raw Metadata
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary py-2 dashboard-btn">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                             </a>
                         </div>
@@ -90,6 +102,10 @@
     .btn.disabled {
         opacity: 0.65;
         cursor: not-allowed;
+    }
+    .dashboard-btn {
+        width: 820px;
+        margin: 0 auto;
     }
     h4 {
         color: var(--secondary-color);

@@ -1,0 +1,52 @@
+Image Metadata Report
+===================
+
+GPSInfo: {0: b'\x02\x02\x00\x00', 1: 'S', 2: (0.0, 22.278, 0.0), 3: 'E', 4: (36.0, 3.385, 0.0)}
+ResolutionUnit: 2
+ExifOffset: 248
+Make: EASTMAN KODAK COMPANY
+Model: KODAK CX7530 ZOOM DIGITAL CAMERA
+Software: GIMP 2.4.5
+Orientation: 1
+DateTime: 2008:07:31 10:39:26
+YCbCrPositioning: 1
+XResolution: 72.0
+YResolution: 72.0
+ExifVersion: 0221
+ComponentsConfiguration: 
+ShutterSpeedValue: 8.0
+DateTimeOriginal: 2005:08:13 09:47:23
+DateTimeDigitized: 2005:08:13 09:47:23
+ApertureValue: 4.4
+ExposureBiasValue: 0.0
+MaxApertureValue: 4.4
+MeteringMode: 5
+LightSource: 0
+Flash: 24
+FocalLength: 16.8
+ColorSpace: 1
+ExifImageWidth: (100, 0)
+ExifInteroperabilityOffset: 786
+SceneCaptureType: 0
+ExifImageHeight: (78, 0)
+Contrast: 0
+Saturation: 0
+Sharpness: 0
+SubjectDistanceRange: 0
+ExposureIndex: 80.0
+SensingMethod: 2
+FileSource: 
+ExposureTime: 0.004
+FNumber: 4.6
+SceneType: 
+ExposureProgram: 2
+CustomRendered: 0
+ExposureMode: 0
+FlashPixVersion: 0100
+WhiteBalance: 0
+DigitalZoomRatio: 0.0
+FocalLengthIn35mmFilm: 102
+GainControl: 0
+Format: JPEG
+Mode: RGB
+Size: [100, 78]

@@ -8,6 +8,7 @@ from models import db, User, AnalyzedImage
 import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from io import StringIO
 
 app = Flask(__name__, 
             template_folder='templates',
@@ -49,13 +50,25 @@ def get_image_metadata(image_path):
                 tag = TAGS.get(tag_id, tag_id)
                 data = exif.get(tag_id)
                 if isinstance(data, bytes):
-                    data = data.decode(errors='replace')
-                metadata[tag] = str(data)
+                    try:
+                        # Try to decode as UTF-8 first
+                        data = data.decode('utf-8')
+                    except UnicodeDecodeError:
+                        try:
+                            # Try to decode as ASCII
+                            data = data.decode('ascii')
+                        except UnicodeDecodeError:
+                            # If both fail, store as hex string
+                            data = f"[Binary Data: {data.hex()}]"
+                elif isinstance(data, (list, tuple, dict)):
+                    # Convert complex data structures to string representation
+                    data = str(data)
+                metadata[str(tag)] = str(data)
         
         # Get basic image info
-        metadata['Format'] = image.format
-        metadata['Mode'] = image.mode
-        metadata['Size'] = image.size
+        metadata['Format'] = str(image.format)
+        metadata['Mode'] = str(image.mode)
+        metadata['Size'] = str(image.size)
         
         return metadata
     except Exception as e:
@@ -269,6 +282,185 @@ def download_image(image_id):
         as_attachment=True,
         download_name=f"cleaned_{image.original_filename}"
     )
+
+def calculate_privacy_score(metadata):
+    score = 10  # Start with perfect score
+    risk_warnings = []
+    
+    # Check for GPS data
+    if any('GPS' in key for key in metadata.keys()):
+        score -= 3
+        risk_warnings.append("GPS coordinates found in image")
+    
+    # Check for device information
+    if any('Make' in key or 'Model' in key for key in metadata.keys()):
+        score -= 1
+        risk_warnings.append("Device information found")
+    
+    # Check for software information
+    if any('Software' in key or 'Processing' in key for key in metadata.keys()):
+        score -= 1
+        risk_warnings.append("Software information found")
+    
+    # Check for date/time information
+    if any('DateTime' in key for key in metadata.keys()):
+        score -= 1
+        risk_warnings.append("Date/Time information found")
+    
+    # Ensure score doesn't go below 0
+    score = max(0, score)
+    
+    return score, risk_warnings
+
+def generate_metadata_report(image, is_cleaned):
+    # Create a StringIO buffer
+    output = StringIO()
+    
+    # Write header
+    output.write("Image Privacy Analysis Report\n")
+    output.write("===========================\n\n")
+    
+    # Basic Information
+    output.write("Basic Information\n")
+    output.write("-----------------\n")
+    output.write(f"Image Name: {image.original_filename}\n")
+    output.write(f"Analysis Date: {image.upload_date.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    output.write(f"User: {image.user.username}\n")
+    output.write(f"Metadata Cleaned: {'Yes' if is_cleaned else 'No'}\n\n")
+    
+    # Privacy Score
+    privacy_score, risk_warnings = calculate_privacy_score(image.image_metadata)
+    output.write("Privacy Assessment\n")
+    output.write("-----------------\n")
+    output.write(f"Privacy Score: {privacy_score}/10\n")
+    
+    if risk_warnings:
+        output.write("\nRisk Warnings:\n")
+        for warning in risk_warnings:
+            output.write(f"- {warning}\n")
+    else:
+        output.write("\nNo significant privacy risks detected.\n")
+    
+    # Metadata Details
+    output.write("\nMetadata Details\n")
+    output.write("---------------\n")
+    if isinstance(image.image_metadata, dict):
+        for key, value in image.image_metadata.items():
+            # Ensure both key and value are strings and properly encoded
+            key_str = str(key).encode('ascii', 'ignore').decode('ascii')
+            value_str = str(value).encode('ascii', 'ignore').decode('ascii')
+            output.write(f"{key_str}: {value_str}\n")
+    else:
+        output.write("No metadata available\n")
+    
+    return output.getvalue()
+
+@app.route('/download_metadata/<int:image_id>')
+@login_required
+def download_metadata(image_id):
+    image = AnalyzedImage.query.get_or_404(image_id)
+    if image.user_id != current_user.id:
+        abort(403)
+    
+    # Check if the image has been cleaned
+    is_cleaned = image.filename.startswith('cleaned_')
+    
+    # Generate the report
+    report_content = generate_metadata_report(image, is_cleaned)
+    
+    # Create a response with the text content
+    response = current_app.response_class(
+        report_content,
+        mimetype='text/plain',
+        headers={
+            'Content-Disposition': f'attachment; filename=privacy_report_{image.original_filename.rsplit(".", 1)[0]}.txt'
+        }
+    )
+    
+    return response
+
+def format_metadata_value(value):
+    """Helper function to format metadata values in a clean way"""
+    if isinstance(value, bytes):
+        try:
+            return value.decode('utf-8')
+        except UnicodeDecodeError:
+            try:
+                return value.decode('ascii')
+            except UnicodeDecodeError:
+                return f"[Binary Data: {value.hex()}]"
+    elif isinstance(value, (list, tuple)):
+        return ', '.join(str(item) for item in value)
+    elif isinstance(value, dict):
+        return ', '.join(f"{k}: {v}" for k, v in value.items())
+    else:
+        return str(value)
+
+def generate_raw_metadata_report(image):
+    """Generate a clean, formatted metadata report"""
+    # Create a StringIO buffer
+    output = StringIO()
+    
+    # Write header
+    output.write("Image Metadata Report\n")
+    output.write("===================\n\n")
+    
+    # Write metadata
+    if isinstance(image.image_metadata, dict):
+        for key, value in sorted(image.image_metadata.items()):
+            # Ensure both key and value are strings and properly encoded
+            key_str = str(key).encode('ascii', 'ignore').decode('ascii')
+            value_str = str(value).encode('ascii', 'ignore').decode('ascii')
+            output.write(f"{key_str}: {value_str}\n")
+    else:
+        output.write("No metadata available\n")
+    
+    return output.getvalue()
+
+@app.route('/download_raw_metadata/<int:image_id>')
+@login_required
+def download_raw_metadata(image_id):
+    image = AnalyzedImage.query.get_or_404(image_id)
+    if image.user_id != current_user.id:
+        abort(403)
+    
+    # Generate the raw metadata report
+    report_content = generate_raw_metadata_report(image)
+    
+    # Create a response with the text content
+    response = current_app.response_class(
+        report_content,
+        mimetype='text/plain',
+        headers={
+            'Content-Disposition': f'attachment; filename=metadata_{image.original_filename.rsplit(".", 1)[0]}.txt'
+        }
+    )
+    
+    return response
+
+@app.route('/download_privacy_report/<int:image_id>')
+@login_required
+def download_privacy_report(image_id):
+    image = AnalyzedImage.query.get_or_404(image_id)
+    if image.user_id != current_user.id:
+        abort(403)
+    
+    # Check if the image has been cleaned
+    is_cleaned = image.filename.startswith('cleaned_')
+    
+    # Generate the comprehensive privacy report
+    report_content = generate_metadata_report(image, is_cleaned)
+    
+    # Create a response with the text content
+    response = current_app.response_class(
+        report_content,
+        mimetype='text/plain',
+        headers={
+            'Content-Disposition': f'attachment; filename=privacy_report_{image.original_filename.rsplit(".", 1)[0]}.txt'
+        }
+    )
+    
+    return response
 
 # Create database tables
 with app.app_context():
